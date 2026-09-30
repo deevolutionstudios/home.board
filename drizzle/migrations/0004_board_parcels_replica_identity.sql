@@ -1,0 +1,1 @@
+ALTER TABLE public.board_parcels REPLICA IDENTITY FULL;

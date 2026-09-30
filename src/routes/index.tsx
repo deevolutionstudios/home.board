@@ -1,13 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Maximize, Minimize, ListTodo, ShoppingBasket, ImagePlus } from "lucide-react";
+import { Maximize, Minimize, ListTodo, ShoppingBasket, ImagePlus, Package } from "lucide-react";
 import boardBackground from "@/assets/board-background.jpg";
 import { CalendarPanel } from "@/components/board/CalendarPanel";
 import { Weather } from "@/components/board/Weather";
 import { TransitPanel } from "@/components/board/TransitPanel";
 import { WifiPanel } from "@/components/board/WifiPanel";
 import { ListPanel } from "@/components/board/ListPanel";
+import { ParcelsPanel } from "@/components/board/ParcelsPanel";
 import { useBoardItems } from "@/components/board/useBoardItems";
+import { useParcels } from "@/components/board/useParcels";
 import { usePhotos } from "@/components/board/usePhotos";
 import { PhotosPanel } from "@/components/board/PhotosPanel";
 import { Button } from "@/components/ui/button";
@@ -69,6 +71,8 @@ function CtrlButton({ onClick, label, children, active, disabled }: { onClick: (
 
 function Board() {
   const board = useBoardItems();
+  const parcelBox = useParcels();
+  const [addingParcel, setAddingParcel] = useState(false);
   const [nightTime, setNightTime] = useState(false);
   const [wokenUntil, setWokenUntil] = useState(0);
   const [nowMs, setNowMs] = useState(0);
@@ -119,6 +123,9 @@ function Board() {
         <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between sm:gap-6">
           <Clock />
           <div className="flex gap-2 sm:gap-3" aria-label="Display controls">
+            <CtrlButton onClick={() => setAddingParcel(true)} label="Parcel">
+              <Package />
+            </CtrlButton>
             <CtrlButton onClick={() => setPhotosOpen(true)} label="Photos">
               <ImagePlus />
             </CtrlButton>
@@ -132,12 +139,15 @@ function Board() {
         <div className="min-h-0"><CalendarPanel /></div>
         <TransitPanel />
         <div aria-hidden className="min-h-6 flex-1" />
+        <ParcelsPanel parcels={parcelBox.parcels} adding={addingParcel} onCloseAdd={() => setAddingParcel(false)}
+          onAdd={parcelBox.add} onToggle={parcelBox.toggle} onRemove={parcelBox.remove} />
         <div className="grid min-h-0 gap-4 sm:gap-5 md:grid-cols-2 lg:gap-6 [&>section]:max-h-[65vh]">
           <ListPanel title="To-do" icon={<ListTodo className="h-6 w-6" />} list="todo" items={todos}
             onAdd={board.add} onToggle={board.toggle} onRemove={board.remove} onClearDone={board.clearDone} />
           <ListPanel title="Groceries" icon={<ShoppingBasket className="h-6 w-6" />} list="grocery" items={groceries}
             onAdd={board.add} onToggle={board.toggle} onRemove={board.remove} onClearDone={board.clearDone} />
         </div>
+
 
         <WifiPanel />
       </div>

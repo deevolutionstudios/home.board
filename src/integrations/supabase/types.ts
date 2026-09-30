@@ -38,6 +38,51 @@ export type Database = {
         }
         Relationships: []
       }
+      board_parcels: {
+        Row: {
+          arrived: boolean
+          carrier: string
+          checked_at: string | null
+          created_at: string
+          delivered_at: string | null
+          expected_date: string | null
+          id: string
+          label: string
+          registered: boolean
+          status: string
+          status_detail: string
+          tracking_number: string
+        }
+        Insert: {
+          arrived?: boolean
+          carrier?: string
+          checked_at?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          expected_date?: string | null
+          id?: string
+          label?: string
+          registered?: boolean
+          status?: string
+          status_detail?: string
+          tracking_number?: string
+        }
+        Update: {
+          arrived?: boolean
+          carrier?: string
+          checked_at?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          expected_date?: string | null
+          id?: string
+          label?: string
+          registered?: boolean
+          status?: string
+          status_detail?: string
+          tracking_number?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
