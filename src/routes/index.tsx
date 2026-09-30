@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Maximize, Minimize, Moon, Sun, ListTodo, ShoppingBasket, ImagePlus } from "lucide-react";
+import { Maximize, Minimize, ListTodo, ShoppingBasket, ImagePlus } from "lucide-react";
 import boardBackground from "@/assets/board-background.jpg";
 import { CalendarPanel } from "@/components/board/CalendarPanel";
 import { Weather } from "@/components/board/Weather";
@@ -69,7 +69,20 @@ function CtrlButton({ onClick, label, children, active, disabled }: { onClick: (
 
 function Board() {
   const board = useBoardItems();
-  const [night, setNight] = useState(false);
+  const [nightTime, setNightTime] = useState(false);
+  const [wokenUntil, setWokenUntil] = useState(0);
+  const [nowMs, setNowMs] = useState(0);
+  useEffect(() => {
+    const check = () => {
+      const t = new Date().toLocaleTimeString("sv-SE", { timeZone: "Europe/Berlin", hour: "2-digit", minute: "2-digit" });
+      setNightTime(t >= "22:00" || t < "06:30");
+      setNowMs(Date.now());
+    };
+    check();
+    const i = setInterval(check, 15_000);
+    return () => clearInterval(i);
+  }, []);
+  const night = nightTime && nowMs >= wokenUntil;
   const [full, setFull] = useState(false);
   const photoSet = usePhotos();
   const [photosOpen, setPhotosOpen] = useState(false);
@@ -94,23 +107,20 @@ function Board() {
       <div
         aria-hidden
         className="fixed inset-0 transition-[filter] duration-700"
-        style={{ filter: night ? "brightness(0.35) saturate(0.6)" : undefined }}
+        style={{ filter: night ? "brightness(0.12) saturate(0.5)" : undefined }}
       >
         <img key={background} src={background} alt="" className="h-full w-full object-cover animate-[fadein_1.2s_ease]" />
         <div className="absolute inset-0 bg-background/55" />
       </div>
       <div
         className="relative mx-auto flex min-h-screen w-full max-w-[1080px] flex-col gap-4 p-4 pb-8 sm:gap-5 sm:p-6 lg:gap-6 lg:p-8 transition-[filter] duration-700"
-        style={{ filter: night ? "brightness(0.35) saturate(0.6)" : undefined }}
+        style={{ filter: night ? "brightness(0.12) saturate(0.5)" : undefined }}
       >
         <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between sm:gap-6">
           <Clock />
           <div className="flex gap-2 sm:gap-3" aria-label="Display controls">
             <CtrlButton onClick={() => setPhotosOpen(true)} label="Photos">
               <ImagePlus />
-            </CtrlButton>
-            <CtrlButton onClick={() => setNight((n) => !n)} label={night ? "Day" : "Night"} active={night}>
-              {night ? <Sun /> : <Moon />}
             </CtrlButton>
             <CtrlButton onClick={toggleFull} label={full ? "Exit" : "Full"}>
               {full ? <Minimize /> : <Maximize />}
@@ -137,7 +147,7 @@ function Board() {
       )}
 
       {night && (
-        <Button variant="ghost" aria-label="Wake display" onClick={() => setNight(false)} className="fixed inset-0 z-20 h-auto w-full cursor-default rounded-none" />
+        <Button variant="ghost" aria-label="Wake display" onClick={() => { setWokenUntil(Date.now() + 2 * 60_000); setNowMs(Date.now()); }} className="fixed inset-0 z-20 h-auto w-full cursor-default rounded-none" />
       )}
     </main>
   );
