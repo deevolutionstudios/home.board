@@ -157,7 +157,7 @@ function Board() {
       )}
 
       {night && (
-        <Button variant="ghost" aria-label="Wake display" onClick={() => { setWokenUntil(Date.now() + 2 * 60_000); setNowMs(Date.now()); }} className="fixed inset-0 z-20 h-auto w-full cursor-default rounded-none" />
+        <Button variant="ghost" aria-label="Wake display" onClick={() => { setWokenUntil(Date.now() + 2 * 60_000); setNowMs(Date.now()); }} className="fixed inset-0 z-20 h-auto w-full cursor-default rounded-none bg-transparent hover:bg-transparent focus-visible:bg-transparent active:bg-transparent" />
       )}
     </main>
   );

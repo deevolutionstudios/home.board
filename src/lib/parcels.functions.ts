@@ -37,7 +37,18 @@ function berlinDate(iso: string) {
   return new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Berlin", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(iso));
 }
 
+function berlinHour() {
+  const parts = new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Berlin", hour: "2-digit", minute: "2-digit", hour12: false }).formatToParts(new Date());
+  const h = Number(parts.find((p) => p.type === "hour")?.value ?? 0);
+  const m = Number(parts.find((p) => p.type === "minute")?.value ?? 0);
+  return h + m / 60;
+}
+
 export const refreshParcels = createServerFn({ method: "POST" }).handler(async () => {
+  // Night quiet hours (10pm–6:30am Berlin): pause scheduled status checks.
+  // A parcel that has never been scanned still gets its first check, so adding
+  // one at night still registers and scans it immediately.
+  const night = berlinHour() >= 22 || berlinHour() < 6.5;
   const token = process.env["TRACK17_API_KEY"];
   if (!token) return { ok: false, reason: "not_configured" as const };
   const url = process.env["SUPABASE_URL"]!;
@@ -62,8 +73,9 @@ export const refreshParcels = createServerFn({ method: "POST" }).handler(async (
   if (error) return { ok: false, reason: "db" as const };
 
   const now = Date.now();
-  const due = (rows ?? []).filter((r) => !r.checked_at || now - new Date(r.checked_at).getTime() > RECHECK_MS).slice(0, 40);
-  if (due.length === 0) return { ok: true, updated: 0 };
+  const all = (rows ?? []).filter((r) => !r.checked_at || now - new Date(r.checked_at).getTime() > RECHECK_MS);
+  const due = (night ? all.filter((r) => !r.checked_at) : all).slice(0, 40);
+  if (due.length === 0) return { ok: true, updated: 0, skipped: night ? ("night" as const) : undefined };
 
   const call = async (path: string, body: unknown) => {
     const res = await fetch(`${API}/${path}`, {
