@@ -1,0 +1,20 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1790760026278,
+      "tag": "0000_board_items",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1790762393671,
+      "tag": "0001_allow_family_board_background",
+      "breakpoints": true
+    }
+  ]
+}

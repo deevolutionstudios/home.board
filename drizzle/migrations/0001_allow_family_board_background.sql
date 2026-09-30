@@ -1,0 +1,3 @@
+CREATE POLICY "Board background can be viewed" ON storage.objects FOR SELECT TO anon, authenticated USING (bucket_id = 'board-backgrounds' AND name = 'background');
+CREATE POLICY "Board background can be uploaded" ON storage.objects FOR INSERT TO anon, authenticated WITH CHECK (bucket_id = 'board-backgrounds' AND name = 'background');
+CREATE POLICY "Board background can be replaced" ON storage.objects FOR UPDATE TO anon, authenticated USING (bucket_id = 'board-backgrounds' AND name = 'background') WITH CHECK (bucket_id = 'board-backgrounds' AND name = 'background');
