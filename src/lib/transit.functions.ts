@@ -34,7 +34,10 @@ const BUS_NORTHBOUND = [
   "giesing",
 ];
 
-async function fetchStop(globalId: string, lines: string[], types: string, eastboundOnly = false, southboundOnly = false): Promise<Departure[]> {
+// Northbound S3 termini from Taufkirchen (toward Munich) — only these are kept there.
+const TAUFKIRCHEN_NORTHBOUND = ["mammendorf", "maisach", "geltendorf", "pasing", "ostbahnhof"];
+
+async function fetchStop(globalId: string, lines: string[], types: string, eastboundOnly = false, southboundOnly = false, keepOnly?: string[], limit = 4): Promise<Departure[]> {
   const r = await fetch(
     `https://www.mvg.de/api/bgw-pt/v3/departures?globalId=${globalId}&limit=40&transportTypes=${types}`,
     { headers: { Accept: "application/json" } },
@@ -46,7 +49,8 @@ async function fetchStop(globalId: string, lines: string[], types: string, eastb
     .filter((d) => lines.includes(d.label))
     .filter((d) => !eastboundOnly || !WESTBOUND.some((w) => d.destination.toLowerCase().includes(w)))
     .filter((d) => !southboundOnly || !BUS_NORTHBOUND.some((w) => d.destination.toLowerCase().includes(w)))
-    .slice(0, 4)
+    .filter((d) => !keepOnly || keepOnly.some((w) => d.destination.toLowerCase().includes(w)))
+    .slice(0, limit)
     .map((d) => {
       const t = d.realtimeDepartureTime || d.plannedDepartureTime;
       return {
@@ -62,12 +66,14 @@ async function fetchStop(globalId: string, lines: string[], types: string, eastb
 }
 
 export const getDepartures = createServerFn({ method: "GET" }).handler(async () => {
-  const [s3, bus] = await Promise.allSettled([
+  const [s3, s3taufkirchen, bus] = await Promise.allSettled([
     fetchStop("de:09162:8", ["S3"], "SBAHN", true),
+    fetchStop("de:09184:2320", ["S3"], "SBAHN", false, false, TAUFKIRCHEN_NORTHBOUND, 2),
     fetchStop("de:09162:54", ["53", "63", "153"], "BUS", false, true),
   ]);
   return {
     s3: s3.status === "fulfilled" ? s3.value : null,
+    s3taufkirchen: s3taufkirchen.status === "fulfilled" ? s3taufkirchen.value : null,
     bus: bus.status === "fulfilled" ? bus.value : null,
   };
 });
