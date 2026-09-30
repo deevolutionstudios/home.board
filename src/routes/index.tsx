@@ -4,6 +4,7 @@ import { Maximize, Minimize, Moon, Sun, ListTodo, ShoppingBasket, ImagePlus } fr
 import boardBackground from "@/assets/board-background.jpg";
 import { CalendarPanel } from "@/components/board/CalendarPanel";
 import { Weather } from "@/components/board/Weather";
+import { TransitPanel } from "@/components/board/TransitPanel";
 import { ListPanel } from "@/components/board/ListPanel";
 import { useBoardItems } from "@/components/board/useBoardItems";
 import { usePhotos } from "@/components/board/usePhotos";
@@ -118,6 +119,7 @@ function Board() {
         <Weather />
 
         <div className="min-h-0"><CalendarPanel /></div>
+        <TransitPanel />
         <div aria-hidden className="min-h-6 flex-1" />
         <div className="grid min-h-0 gap-4 sm:gap-5 md:grid-cols-2 lg:gap-6 [&>section]:max-h-[65vh]">
           <ListPanel title="To-do" icon={<ListTodo className="h-6 w-6" />} list="todo" items={todos}

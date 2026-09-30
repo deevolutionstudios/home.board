@@ -1,8 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
-import { Cloud, CloudDrizzle, CloudFog, CloudLightning, CloudRain, CloudSnow, CloudSun, Sun, Wind, Droplets, Umbrella, Snowflake } from "lucide-react";
+import { Cloud, CloudDrizzle, CloudFog, CloudLightning, CloudRain, CloudSnow, CloudSun, Sun, Wind, Droplets, Umbrella, Snowflake, Sunrise, Sunset, TriangleAlert } from "lucide-react";
 
 const URL =
-  "https://api.open-meteo.com/v1/forecast?latitude=48.137&longitude=11.575&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m&hourly=temperature_2m,weather_code,precipitation_probability,snowfall&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=Europe%2FBerlin&forecast_days=4";
+  "https://api.open-meteo.com/v1/forecast?latitude=48.137&longitude=11.575&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m&hourly=temperature_2m,weather_code,precipitation_probability,snowfall&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset&timezone=Europe%2FBerlin&forecast_days=4";
 
 function describe(code: number) {
   if (code === 0) return { label: "Clear", Icon: Sun };
@@ -22,8 +22,10 @@ function isSnowCode(code: number) {
 type WeatherData = {
   current: { temperature_2m: number; apparent_temperature: number; relative_humidity_2m: number; weather_code: number; wind_speed_10m: number };
   hourly: { time: string[]; temperature_2m: number[]; weather_code: number[]; precipitation_probability: number[]; snowfall: number[] };
-  daily: { time: string[]; weather_code: number[]; temperature_2m_max: number[]; temperature_2m_min: number[]; precipitation_probability_max: number[] };
+  daily: { time: string[]; weather_code: number[]; temperature_2m_max: number[]; temperature_2m_min: number[]; precipitation_probability_max: number[]; sunrise?: string[]; sunset?: string[] };
 };
+
+type Alert = { id: number; event_en: string | null; headline_en: string | null; severity: string; onset: string; expires: string | null };
 
 export const weatherKey = ["weather"];
 
@@ -37,6 +39,16 @@ export function Weather() {
     },
     refetchInterval: 10 * 60_000,
   });
+  const { data: alerts } = useQuery({
+    queryKey: ["weather-alerts"],
+    queryFn: async () => {
+      const r = await fetch("https://api.brightsky.dev/alerts?lat=48.137&lon=11.575");
+      if (!r.ok) return [] as Alert[];
+      return ((await r.json()) as { alerts: Alert[] }).alerts ?? [];
+    },
+    refetchInterval: 10 * 60_000,
+  });
+  const activeAlerts = (alerts ?? []).filter((a) => !a.expires || new Date(a.expires).getTime() > Date.now());
 
   if (!data) {
     return (
@@ -83,6 +95,20 @@ export function Weather() {
         <Icon className="h-24 w-24 shrink-0 text-accent" strokeWidth={1.2} />
       </div>
 
+      {activeAlerts.map((a) => (
+        <div key={a.id} className="flex items-start gap-2 rounded-2xl border border-destructive/60 bg-destructive/25 px-4 py-2.5 text-base">
+          <TriangleAlert className="mt-0.5 h-5 w-5 shrink-0 text-destructive" />
+          <span>
+            <span className="font-semibold">{a.headline_en ?? a.event_en ?? "Weather warning"}</span>
+            {a.expires && (
+              <span className="text-muted-foreground">
+                {" "}· until {new Date(a.expires).toLocaleString("en-GB", { weekday: "short", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Berlin" })}
+              </span>
+            )}
+          </span>
+        </div>
+      ))}
+
       {(rainToday || snowToday) && (
         <div className="flex items-center gap-2 rounded-2xl bg-muted/60 px-4 py-2.5 text-base">
           {snowToday ? <Snowflake className="h-5 w-5 text-accent" /> : <Umbrella className="h-5 w-5 text-accent" />}
@@ -92,9 +118,11 @@ export function Weather() {
         </div>
       )}
 
-      <div className="flex gap-5 text-muted-foreground">
+      <div className="flex flex-wrap gap-x-5 gap-y-1 text-muted-foreground">
         <span className="flex items-center gap-1.5"><Wind className="h-4 w-4" />{Math.round(data.current.wind_speed_10m)} km/h</span>
         <span className="flex items-center gap-1.5"><Droplets className="h-4 w-4" />{data.current.relative_humidity_2m}%</span>
+        {data.daily.sunrise?.[0] && <span className="flex items-center gap-1.5"><Sunrise className="h-4 w-4" />{data.daily.sunrise?.[0].slice(11, 16)}</span>}
+        {data.daily.sunset?.[0] && <span className="flex items-center gap-1.5"><Sunset className="h-4 w-4" />{data.daily.sunset?.[0].slice(11, 16)}</span>}
       </div>
 
       {hours.length > 0 && (

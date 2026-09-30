@@ -13,10 +13,19 @@ type Props = {
   onClearDone: (list: BoardList) => void;
 };
 
+export const MAX_VISIBLE_ITEMS = 8;
+
 export function ListPanel({ title, icon, list, items, onAdd, onToggle, onRemove, onClearDone }: Props) {
   const [text, setText] = useState("");
+  const [showAll, setShowAll] = useState(false);
   const open = items.filter((i) => !i.done);
   const done = items.filter((i) => i.done);
+  const hiddenCount = Math.max(0, open.length - MAX_VISIBLE_ITEMS);
+  const visibleOpen = showAll || hiddenCount === 0 ? open : open.slice(0, MAX_VISIBLE_ITEMS);
+
+  // Text steps down as the list grows so a long list stays tidy on the wall.
+  const textClass =
+    items.length > 14 ? "text-xs sm:text-sm" : items.length > 8 ? "text-sm sm:text-base" : "text-base sm:text-lg";
 
   return (
     <section className="glass flex min-h-0 flex-col rounded-3xl p-4 sm:p-6">
@@ -61,7 +70,7 @@ export function ListPanel({ title, icon, list, items, onAdd, onToggle, onRemove,
       </form>
 
       <ul className="-mr-2 min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain pr-2">
-        {[...open, ...done].map((item) => (
+        {[...visibleOpen, ...done].map((item) => (
           <li key={item.id} className="group flex items-center gap-3 rounded-2xl bg-muted/60 pl-2">
             <button
               onClick={() => onToggle(item)}
@@ -74,7 +83,7 @@ export function ListPanel({ title, icon, list, items, onAdd, onToggle, onRemove,
               >
                 {item.done && <Check className="h-5 w-5" />}
               </span>
-              <span className={`truncate text-base sm:text-lg ${item.done ? "text-muted-foreground line-through" : ""}`}>
+              <span className={`truncate ${textClass} ${item.done ? "text-muted-foreground line-through" : ""}`}>
                 {item.text}
               </span>
             </button>
@@ -87,6 +96,16 @@ export function ListPanel({ title, icon, list, items, onAdd, onToggle, onRemove,
             </button>
           </li>
         ))}
+        {hiddenCount > 0 && (
+          <li className="pt-1">
+            <button
+              onClick={() => setShowAll((v) => !v)}
+              className="min-h-11 w-full rounded-xl text-xs text-muted-foreground/70 active:scale-95"
+            >
+              {showAll ? "Show less" : `+ ${hiddenCount} more`}
+            </button>
+          </li>
+        )}
         {items.length === 0 && <li className="py-8 text-center text-muted-foreground">Nothing here yet</li>}
       </ul>
     </section>
