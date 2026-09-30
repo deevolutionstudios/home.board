@@ -71,14 +71,32 @@ Then do step 5 above for the custom domain.
 
 ## Calendar on your own hosting
 
-Outside Lovable, the calendar panel needs your own free Google API key
-(~15 minutes, console.cloud.google.com: create a project → enable
-**Google Calendar API** → Credentials → API key). Then either:
+Your family calendar is private, so a plain API key is not enough — the board
+signs in as a Google **service account** that you share the calendar with.
+Setup is free and takes ~15 minutes:
 
-- add `GOOGLE_CALENDAR_API_KEY="..."` to `.env` and re-deploy — **and** ask me
-  to switch the calendar code from Lovable's connection gateway to reading
-  your key directly (one small change I can make before you deploy), or
-- keep the board on Lovable hosting, where the calendar works with no setup.
+1. Go to **console.cloud.google.com**, sign in with your Google account, and
+   create a project (name it e.g. `Home Board`).
+2. **APIs & Services → Library** → search **Google Calendar API** → **Enable**.
+3. **APIs & Services → Credentials → Create credentials → Service account**.
+   Name it e.g. `home-board`, skip the optional role steps, click **Done**.
+4. Open the service account → **Keys** tab → **Add key → Create new key →
+   JSON**. A `.json` file downloads — **keep it private** (never upload it to
+   GitHub). Open it in a text editor and copy everything.
+5. In **Google Calendar** (calendar.google.com) → your family calendar →
+   **⋮ → Settings and sharing → Share with specific people** → add the service
+   account's email (it ends in `@...iam.gserviceaccount.com`) with
+   **See all event details** → Send.
+6. In **Cloudflare** → your `home-board` Worker → **Settings → Variables and
+   Secrets** → **Add**:
+   - Type **Secret**, name `GOOGLE_SERVICE_ACCOUNT_JSON`, paste the JSON
+     contents as the value.
+   - (Optional) Type **Text**, name `GOOGLE_CALENDAR_IDS`, with a
+     comma-separated list of the calendar IDs to show.
+7. Redeploy the worker (Deployments → Retry deployment, or push any commit).
+
+After that the calendar panel fills in on your own hosting, same as it does
+here in Lovable. The calendar stays empty until steps 5 and 6 are both done.
 
 Everything else (clock, weather, to-do & grocery lists, background photo,
 night mode, fullscreen) works on Cloudflare out of the box — the lists and

@@ -1,6 +1,7 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { CalendarDays } from "lucide-react";
+import { CalendarDays, MapPin } from "lucide-react";
 import { getUpcomingEvents, type CalEvent } from "@/lib/calendar.functions";
 
 export const calendarKey = ["calendar"];
@@ -13,15 +14,39 @@ function eventDay(e: CalEvent) {
 }
 const time = (s: string) => new Date(s).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
 
-function EventRow({ e, big }: { e: CalEvent; big?: boolean }) {
+const timeRange = (e: CalEvent) => (e.allDay ? "All day" : `${time(e.start)} – ${time(e.end)}`);
+
+function TodayEvent({ e }: { e: CalEvent }) {
+  const [open, setOpen] = useState(false);
   const past = !e.allDay && new Date(e.end) < new Date();
+  const hasDetails = Boolean(e.location || e.description);
   return (
-    <li className={`flex items-center gap-4 rounded-2xl bg-muted/60 px-4 ${big ? "py-3" : "py-2"} ${past ? "opacity-40" : ""}`}>
-      <span className="h-8 w-1.5 shrink-0 rounded-full" style={{ background: e.color ?? "var(--primary)" }} />
-      <span className={`w-24 shrink-0 tabular-nums text-muted-foreground ${big ? "text-lg" : "text-sm"}`}>
-        {e.allDay ? "All day" : time(e.start)}
-      </span>
-      <span className={`min-w-0 truncate ${big ? "text-xl" : "text-base"}`}>{e.title}</span>
+    <li className={`grid grid-cols-[1.5rem_8rem_1fr] gap-x-4 rounded-2xl bg-muted/60 px-4 py-3 ${past ? "opacity-40" : ""}`}>
+      <span className="h-8 w-1.5 self-center rounded-full" style={{ background: e.color ?? "var(--primary)" }} />
+      <span className="self-center tabular-nums text-lg text-muted-foreground">{timeRange(e)}</span>
+      <span className="min-w-0 self-center truncate text-xl">{e.title}</span>
+      {hasDetails && (
+        <div className="col-span-2 col-start-2 mt-2 space-y-1.5">
+          {e.location && (
+            <p className="flex min-w-0 items-center gap-2 text-sm text-muted-foreground">
+              <MapPin className="h-4 w-4 shrink-0" aria-hidden />
+              <span className="min-w-0">{e.location}</span>
+            </p>
+          )}
+          {e.description && (
+            <button
+              type="button"
+              onClick={() => setOpen((o) => !o)}
+              aria-expanded={open}
+              className="block w-full text-left"
+            >
+              <p className={`whitespace-pre-line text-sm leading-relaxed text-muted-foreground ${open ? "" : "line-clamp-2"}`}>
+                {e.description}
+              </p>
+            </button>
+          )}
+        </div>
+      )}
     </li>
   );
 }
@@ -54,7 +79,7 @@ export function CalendarPanel() {
         <>
           <ul className="min-h-0 flex-1 space-y-2 overflow-y-auto">
             {todays.length === 0 && <li className="py-6 text-center text-lg text-muted-foreground">Nothing scheduled today</li>}
-            {todays.map((e) => <EventRow key={e.id} e={e} big />)}
+            {todays.map((e) => <TodayEvent key={e.id} e={e} />)}
           </ul>
           <div className="mt-5 grid grid-cols-3 gap-3 border-t border-border pt-5">
             {days.slice(1).map((d) => {

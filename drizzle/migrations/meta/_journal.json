@@ -15,6 +15,13 @@
       "when": 1790762393671,
       "tag": "0001_allow_family_board_background",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790771139420,
+      "tag": "0002_board_photos_folder",
+      "breakpoints": true
     }
   ]
 }

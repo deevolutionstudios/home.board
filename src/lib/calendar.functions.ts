@@ -8,6 +8,8 @@ export type CalEvent = {
   allDay: boolean;
   calendar: string;
   color: string | null;
+  location?: string;
+  description?: string;
 };
 
 const GOOGLE_API = "https://www.googleapis.com/calendar/v3";
@@ -159,6 +161,8 @@ export const getUpcomingEvents = createServerFn({ method: "GET" }).handler(async
           status?: string;
           start: { dateTime?: string; date?: string };
           end: { dateTime?: string; date?: string };
+          location?: string;
+          description?: string;
         }[];
       };
       return (d.items ?? [])
@@ -171,6 +175,8 @@ export const getUpcomingEvents = createServerFn({ method: "GET" }).handler(async
           allDay: !e.start.dateTime,
           calendar: c.summary,
           color: c.backgroundColor ?? null,
+          ...(e.location ? { location: e.location } : {}),
+          ...(e.description ? { description: e.description } : {}),
         }));
     }),
   );
