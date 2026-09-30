@@ -7,6 +7,9 @@
   "compatibility_flags": ["nodejs_compat"],
   "main": "dist/server/index.mjs",
   "keep_vars": true,
+  "vars": {
+    "GOOGLE_CALENDAR_IDS": "richardandraja@gmail.com"
+  },
   "assets": {
     "directory": "dist/client",
     "binding": "ASSETS"
