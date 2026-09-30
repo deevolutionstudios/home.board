@@ -5,6 +5,7 @@ import boardBackground from "@/assets/board-background.jpg";
 import { CalendarPanel } from "@/components/board/CalendarPanel";
 import { Weather } from "@/components/board/Weather";
 import { TransitPanel } from "@/components/board/TransitPanel";
+import { WifiPanel } from "@/components/board/WifiPanel";
 import { ListPanel } from "@/components/board/ListPanel";
 import { useBoardItems } from "@/components/board/useBoardItems";
 import { usePhotos } from "@/components/board/usePhotos";
@@ -127,6 +128,8 @@ function Board() {
           <ListPanel title="Groceries" icon={<ShoppingBasket className="h-6 w-6" />} list="grocery" items={groceries}
             onAdd={board.add} onToggle={board.toggle} onRemove={board.remove} onClearDone={board.clearDone} />
         </div>
+
+        <WifiPanel />
       </div>
 
       {photosOpen && (
