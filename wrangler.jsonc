@@ -8,8 +8,9 @@
   "main": "dist/server/index.mjs",
   "keep_vars": true,
   "vars": {
-    "GOOGLE_CALENDAR_IDS": "richardandraja@gmail.com"
+    "GOOGLE_CALENDAR_IDS": "richardandraja@gmail.com,de.german#holiday@group.v.calendar.google.com"
   },
+
   "assets": {
     "directory": "dist/client",
     "binding": "ASSETS"
