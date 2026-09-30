@@ -24,7 +24,18 @@ function TodayEvent({ e }: { e: CalEvent }) {
     <li className={`grid grid-cols-[1.5rem_8rem_1fr] gap-x-4 rounded-2xl bg-muted/60 px-4 py-3 ${past ? "opacity-40" : ""}`}>
       <span className="h-8 w-1.5 self-center rounded-full" style={{ background: e.color ?? "var(--primary)" }} />
       <span className="self-center tabular-nums text-lg text-muted-foreground">{timeRange(e)}</span>
-      <span className="min-w-0 self-center truncate text-xl">{e.title}</span>
+      {e.htmlLink ? (
+        <a
+          href={e.htmlLink}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="min-w-0 self-center truncate text-xl underline-offset-4 hover:text-primary hover:underline active:text-primary"
+        >
+          {e.title}
+        </a>
+      ) : (
+        <span className="min-w-0 self-center truncate text-xl">{e.title}</span>
+      )}
       {hasDetails && (
         <div className="col-span-2 col-start-2 mt-2 space-y-1.5">
           {e.location && (
@@ -96,7 +107,18 @@ export function CalendarPanel() {
                       <li key={e.id} className="flex items-center gap-2 text-sm">
                         <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: e.color ?? "var(--primary)" }} />
                         <span className="shrink-0 tabular-nums text-muted-foreground">{e.allDay ? "·" : time(e.start)}</span>
-                        <span className="truncate">{e.title}</span>
+                        {e.htmlLink ? (
+                          <a
+                            href={e.htmlLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="min-w-0 truncate underline-offset-4 hover:text-primary hover:underline active:text-primary"
+                          >
+                            {e.title}
+                          </a>
+                        ) : (
+                          <span className="truncate">{e.title}</span>
+                        )}
                       </li>
                     ))}
                     {evs.length > 4 && <li className="text-sm text-muted-foreground">+{evs.length - 4} more</li>}

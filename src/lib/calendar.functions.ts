@@ -10,6 +10,8 @@ export type CalEvent = {
   color: string | null;
   location?: string;
   description?: string;
+  /** Direct link to open this event in calendar.google.com */
+  htmlLink: string;
 };
 
 const GOOGLE_API = "https://www.googleapis.com/calendar/v3";
@@ -134,6 +136,21 @@ export const getUpcomingEvents = createServerFn({ method: "GET" }).handler(async
 
   const calendars = await loadCalendars(headers, base);
 
+  // When someone taps an event link while signed into several Google accounts,
+  // force the calendar owner's account (an email-like calendar id) so the event
+  // opens under that account instead of whichever one is currently active.
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const idsEnv = process.env["GOOGLE_CALENDAR_IDS"] ?? "";
+  const fallbackEmail = idsEnv.split(",").map((s) => s.trim()).find((id) => EMAIL_RE.test(id)) ?? null;
+  const openLink = (raw: string, calId: string): string => {
+    if (!raw) return raw;
+    // "#"-containing ids (shared/holiday groups like de.german#holiday@…) are
+    // calendar ids, not Google accounts — only real email ids can be authuser.
+    const auth = (EMAIL_RE.test(calId) && !calId.includes("#") ? calId : null) ?? fallbackEmail;
+    if (!auth) return raw;
+    return `${raw}${raw.includes("?") ? "&" : "?"}authuser=${encodeURIComponent(auth)}`;
+  };
+
   const start = new Date();
   start.setHours(0, 0, 0, 0);
   start.setDate(start.getDate() - 1); // buffer for timezone differences; client filters
@@ -163,6 +180,7 @@ export const getUpcomingEvents = createServerFn({ method: "GET" }).handler(async
           end: { dateTime?: string; date?: string };
           location?: string;
           description?: string;
+          htmlLink?: string;
         }[];
       };
       return (d.items ?? [])
@@ -175,6 +193,7 @@ export const getUpcomingEvents = createServerFn({ method: "GET" }).handler(async
           allDay: !e.start.dateTime,
           calendar: c.summary,
           color: c.backgroundColor ?? null,
+          htmlLink: openLink(e.htmlLink ?? "", c.id),
           ...(e.location ? { location: e.location } : {}),
           ...(e.description ? { description: e.description } : {}),
         }));
