@@ -122,7 +122,12 @@ export const getUpcomingEvents = createServerFn({ method: "GET" }).handler(async
     base = GATEWAY;
     headers = { Authorization: `Bearer ${lovableKey}`, "X-Connection-Api-Key": calKey };
   } else {
-    throw new Error("Google Calendar is not set up yet on this hosting");
+    // Show only the NAMES of Google-related settings this server can see (never values),
+    // so a misplaced or misspelled setting is obvious on the board itself.
+    const seen = Object.keys(process.env).filter((k) => k.toUpperCase().includes("GOOGLE"));
+    throw new Error(
+      `Google Calendar is not set up yet on this hosting (settings visible: ${seen.length ? seen.map((k) => JSON.stringify(k)).join(", ") : "none"})`,
+    );
   }
 
   const calendars = await loadCalendars(headers, base);
