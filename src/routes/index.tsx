@@ -1,12 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useRef, useState, type ChangeEvent } from "react";
+import { useEffect, useState } from "react";
 import { Maximize, Minimize, Moon, Sun, ListTodo, ShoppingBasket, ImagePlus } from "lucide-react";
 import boardBackground from "@/assets/board-background.jpg";
 import { CalendarPanel } from "@/components/board/CalendarPanel";
 import { Weather } from "@/components/board/Weather";
 import { ListPanel } from "@/components/board/ListPanel";
 import { useBoardItems } from "@/components/board/useBoardItems";
-import { supabase } from "@/integrations/supabase/client";
+import { usePhotos } from "@/components/board/usePhotos";
+import { PhotosPanel } from "@/components/board/PhotosPanel";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/")({
@@ -68,54 +69,9 @@ function Board() {
   const board = useBoardItems();
   const [night, setNight] = useState(false);
   const [full, setFull] = useState(false);
-  const [background, setBackground] = useState<string>(boardBackground);
-  const [uploading, setUploading] = useState(false);
-  const [uploadError, setUploadError] = useState("");
-  const fileInput = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    let active = true;
-    let currentUrl: string | undefined;
-    const loadBackground = async () => {
-      const { data, error } = await supabase.storage.from("board-backgrounds").download("background");
-      if (!active) return;
-      if (error || !data) return;
-      const nextUrl = URL.createObjectURL(data);
-      setBackground(nextUrl);
-      if (currentUrl) URL.revokeObjectURL(currentUrl);
-      currentUrl = nextUrl;
-    };
-    void loadBackground();
-    const interval = window.setInterval(() => void loadBackground(), 60_000);
-    return () => {
-      active = false;
-      window.clearInterval(interval);
-      if (currentUrl) URL.revokeObjectURL(currentUrl);
-    };
-  }, []);
-
-  const uploadBackground = async (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    event.target.value = "";
-    if (!file) return;
-    if (!file.type.startsWith("image/") || file.size > 10 * 1024 * 1024) {
-      setUploadError("Choose an image smaller than 10 MB.");
-      return;
-    }
-    setUploading(true);
-    setUploadError("");
-    const { error } = await supabase.storage.from("board-backgrounds").upload("background", file, { upsert: true, contentType: file.type, cacheControl: "0" });
-    setUploading(false);
-    if (error) {
-      setUploadError("Photo couldn't be saved. Please try again.");
-      return;
-    }
-    // The local preview updates immediately; other open displays pick up the saved photo shortly.
-    setBackground((previous) => {
-      if (previous.startsWith("blob:")) URL.revokeObjectURL(previous);
-      return URL.createObjectURL(file);
-    });
-  };
+  const photoSet = usePhotos();
+  const [photosOpen, setPhotosOpen] = useState(false);
+  const background = photoSet.current?.url ?? boardBackground;
 
   useEffect(() => {
     const h = () => setFull(!!document.fullscreenElement);
@@ -138,7 +94,7 @@ function Board() {
         className="fixed inset-0 transition-[filter] duration-700"
         style={{ filter: night ? "brightness(0.35) saturate(0.6)" : undefined }}
       >
-        <img src={background} alt="" className="h-full w-full object-cover" />
+        <img key={background} src={background} alt="" className="h-full w-full object-cover animate-[fadein_1.2s_ease]" />
         <div className="absolute inset-0 bg-background/55" />
       </div>
       <div
@@ -148,8 +104,7 @@ function Board() {
         <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between sm:gap-6">
           <Clock />
           <div className="flex gap-2 sm:gap-3" aria-label="Display controls">
-            <input ref={fileInput} type="file" accept="image/*" className="hidden" aria-label="Choose background photo" onChange={uploadBackground} />
-            <CtrlButton onClick={() => fileInput.current?.click()} label={uploading ? "Saving…" : "Photo"} disabled={uploading}>
+            <CtrlButton onClick={() => setPhotosOpen(true)} label="Photos">
               <ImagePlus />
             </CtrlButton>
             <CtrlButton onClick={() => setNight((n) => !n)} label={night ? "Day" : "Night"} active={night}>
@@ -160,7 +115,6 @@ function Board() {
             </CtrlButton>
           </div>
         </header>
-        {uploadError && <p role="alert" className="text-sm text-destructive">{uploadError}</p>}
         <Weather />
 
         <div className="order-last min-h-0 md:order-none"><CalendarPanel /></div>
@@ -172,6 +126,10 @@ function Board() {
             onAdd={board.add} onToggle={board.toggle} onRemove={board.remove} onClearDone={board.clearDone} />
         </div>
       </div>
+
+      {photosOpen && (
+        <PhotosPanel photos={photoSet.photos} onAdd={photoSet.add} onRemove={photoSet.remove} onClose={() => setPhotosOpen(false)} />
+      )}
 
       {night && (
         <Button variant="ghost" aria-label="Wake display" onClick={() => setNight(false)} className="fixed inset-0 z-20 h-auto w-full cursor-default rounded-none" />

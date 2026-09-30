@@ -89,3 +89,5 @@
   }
   input { user-select: text; }
 }
+
+@keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
