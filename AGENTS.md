@@ -12,3 +12,5 @@
 - Keep the wall board in a portrait-first, vertically scrolling layout even on wide screens, because the household display is portrait-mounted.
 - Store shared background photos as `photo-*` objects (plus legacy `background`), cycled every 5 minutes, in the private `board-backgrounds` bucket with scoped anonymous storage policies, because the board is intentionally available without sign-in and family devices need the same image.
 - Track household parcels in `board_parcels` (open RLS like `board_items`): manual add of carrier/label/tracking number/expected date with one-tap carrier tracking links. Live carrier status is not publicly available (DHL/Hermes/DPD/GLS/America APIs need registered keys); a Gmail reader for auto-adding parcels is a planned follow-up.
+- Keep parcel and list rows non-toggleable, with X as the sole manual remove action; parcel delivery status remains automatic to avoid accidental completion.
+- Keep display night mode manual and stored per device; Refresh reloads the board so every feed updates together without an automatic display dimming schedule.

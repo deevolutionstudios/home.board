@@ -130,6 +130,8 @@ export function Weather() {
           {hours.map(({ t, i }) => {
             const { Icon: HI } = describe(data.hourly.weather_code[i] ?? 0);
             const precip = data.hourly.precipitation_probability[i] ?? 0;
+            const snowy = (data.hourly.snowfall[i] ?? 0) > 0 || isSnowCode(data.hourly.weather_code[i] ?? 0);
+            const PI = snowy ? Snowflake : Droplets;
             return (
               <div key={t} className="flex min-w-[52px] flex-1 flex-col items-center rounded-xl bg-muted/40 py-2">
                 <span className="text-xs text-muted-foreground">
@@ -137,9 +139,9 @@ export function Weather() {
                 </span>
                 <HI className="my-1 h-5 w-5" strokeWidth={1.5} />
                 <span className="text-sm">{Math.round(data.hourly.temperature_2m[i] ?? 0)}°</span>
-                {precip >= 20 && (
-                  <span className="text-[10px] text-accent">{precip}%</span>
-                )}
+                <span className={`mt-0.5 flex items-center gap-0.5 text-xs ${precip >= 20 ? "text-accent" : "text-muted-foreground"}`}>
+                  <PI className="h-3 w-3" />{precip}%
+                </span>
               </div>
             );
           })}
@@ -148,7 +150,10 @@ export function Weather() {
 
       <div className="grid grid-cols-3 gap-2">
         {data.daily.time.slice(1, 4).map((d, i) => {
-          const { Icon: DI } = describe(data.daily.weather_code[i + 1] ?? 0);
+          const code = data.daily.weather_code[i + 1] ?? 0;
+          const { Icon: DI } = describe(code);
+          const dp = data.daily.precipitation_probability_max[i + 1] ?? 0;
+          const PI = isSnowCode(code) ? Snowflake : Droplets;
           return (
             <div key={d} className="flex flex-col items-center rounded-2xl bg-muted/60 py-3">
               <span className="text-sm text-muted-foreground">
@@ -158,6 +163,9 @@ export function Weather() {
               <span className="text-base">
                 {Math.round(data.daily.temperature_2m_max[i + 1] ?? 0)}°{" "}
                 <span className="text-muted-foreground">{Math.round(data.daily.temperature_2m_min[i + 1] ?? 0)}°</span>
+              </span>
+              <span className={`mt-0.5 flex items-center gap-1 text-sm ${dp >= 30 ? "text-accent" : "text-muted-foreground"}`}>
+                <PI className="h-3.5 w-3.5" />{dp}%
               </span>
             </div>
           );
