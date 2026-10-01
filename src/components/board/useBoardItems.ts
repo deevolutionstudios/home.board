@@ -39,18 +39,9 @@ export function useBoardItems() {
     await supabase.from("board_items").insert({ list, text: t });
     load();
   };
-  const toggle = async (item: BoardItem) => {
-    setItems((p) => p.map((i) => (i.id === item.id ? { ...i, done: !i.done } : i)));
-    await supabase.from("board_items").update({ done: !item.done }).eq("id", item.id);
-  };
   const remove = async (id: string) => {
     setItems((p) => p.filter((i) => i.id !== id));
     await supabase.from("board_items").delete().eq("id", id);
   };
-  const clearDone = async (list: BoardList) => {
-    setItems((p) => p.filter((i) => !(i.list === list && i.done)));
-    await supabase.from("board_items").delete().eq("list", list).eq("done", true);
-  };
-
-  return { items, error, add, toggle, remove, clearDone, reload: load };
+  return { items, error, add, remove, reload: load };
 }

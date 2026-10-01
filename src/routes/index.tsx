@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Maximize, Minimize, ListTodo, ShoppingBasket, ImagePlus, Package } from "lucide-react";
+import { Maximize, Minimize, ListTodo, ShoppingBasket, ImagePlus, Package, RefreshCw, Moon } from "lucide-react";
 import boardBackground from "@/assets/board-background.jpg";
 import { CalendarPanel } from "@/components/board/CalendarPanel";
 import { Weather } from "@/components/board/Weather";
@@ -73,20 +73,18 @@ function Board() {
   const board = useBoardItems();
   const parcelBox = useParcels();
   const [addingParcel, setAddingParcel] = useState(false);
-  const [nightTime, setNightTime] = useState(false);
-  const [wokenUntil, setWokenUntil] = useState(0);
-  const [nowMs, setNowMs] = useState(0);
+  const [night, setNight] = useState(false);
   useEffect(() => {
-    const check = () => {
-      const t = new Date().toLocaleTimeString("sv-SE", { timeZone: "Europe/Berlin", hour: "2-digit", minute: "2-digit" });
-      setNightTime(t >= "22:00" || t < "06:30");
-      setNowMs(Date.now());
-    };
-    check();
-    const i = setInterval(check, 15_000);
-    return () => clearInterval(i);
+    setNight(window.localStorage.getItem("board-night-mode") === "on");
   }, []);
-  const night = nightTime && nowMs >= wokenUntil;
+  const toggleNight = () => setNight((current) => {
+    window.localStorage.setItem("board-night-mode", current ? "off" : "on");
+    return !current;
+  });
+  const wake = () => {
+    window.localStorage.setItem("board-night-mode", "off");
+    setNight(false);
+  };
   const [full, setFull] = useState(false);
   const photoSet = usePhotos();
   const [photosOpen, setPhotosOpen] = useState(false);
@@ -129,6 +127,12 @@ function Board() {
             <CtrlButton onClick={() => setPhotosOpen(true)} label="Photos">
               <ImagePlus />
             </CtrlButton>
+            <CtrlButton onClick={() => window.location.reload()} label="Refresh">
+              <RefreshCw />
+            </CtrlButton>
+            <CtrlButton onClick={toggleNight} label="Night" active={night}>
+              <Moon />
+            </CtrlButton>
             <CtrlButton onClick={toggleFull} label={full ? "Exit" : "Full"}>
               {full ? <Minimize /> : <Maximize />}
             </CtrlButton>
@@ -140,12 +144,12 @@ function Board() {
         <TransitPanel />
         <div aria-hidden className="min-h-6 flex-1" />
         <ParcelsPanel parcels={parcelBox.parcels} adding={addingParcel} onCloseAdd={() => setAddingParcel(false)}
-          onAdd={parcelBox.add} onToggle={parcelBox.toggle} onRemove={parcelBox.remove} />
+           onAdd={parcelBox.add} onRemove={parcelBox.remove} />
         <div className="grid min-h-0 gap-4 sm:gap-5 md:grid-cols-2 lg:gap-6 [&>section]:max-h-[65vh]">
           <ListPanel title="To-do" icon={<ListTodo className="h-6 w-6" />} list="todo" items={todos}
-            onAdd={board.add} onToggle={board.toggle} onRemove={board.remove} onClearDone={board.clearDone} />
+             onAdd={board.add} onRemove={board.remove} />
           <ListPanel title="Groceries" icon={<ShoppingBasket className="h-6 w-6" />} list="grocery" items={groceries}
-            onAdd={board.add} onToggle={board.toggle} onRemove={board.remove} onClearDone={board.clearDone} />
+             onAdd={board.add} onRemove={board.remove} />
         </div>
 
 
@@ -157,7 +161,7 @@ function Board() {
       )}
 
       {night && (
-        <Button variant="ghost" aria-label="Wake display" onClick={() => { setWokenUntil(Date.now() + 2 * 60_000); setNowMs(Date.now()); }} className="fixed inset-0 z-20 h-auto w-full cursor-default rounded-none bg-transparent hover:bg-transparent focus-visible:bg-transparent active:bg-transparent" />
+        <Button variant="ghost" aria-label="Wake display" onClick={wake} className="fixed inset-0 z-20 h-auto w-full cursor-default rounded-none bg-transparent hover:bg-transparent focus-visible:bg-transparent active:bg-transparent" />
       )}
     </main>
   );

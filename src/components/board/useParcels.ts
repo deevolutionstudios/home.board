@@ -74,20 +74,11 @@ export function useParcels() {
       await supabase.from("board_parcels").insert({ carrier, label: l, tracking_number: n });
       await refresh();
     });
-  const toggle = (p: Parcel) =>
-    enqueue(async () => {
-      const arrived = !p.arrived;
-      setAll((list) => list.map((i) => (i.id === p.id ? { ...i, arrived } : i)));
-      await supabase
-        .from("board_parcels")
-        .update({ arrived, delivered_at: arrived ? new Date().toISOString() : null, status: arrived ? "delivered" : "pending" })
-        .eq("id", p.id);
-    });
   const remove = (id: string) =>
     enqueue(async () => {
       setAll((list) => list.filter((i) => i.id !== id));
       await supabase.from("board_parcels").delete().eq("id", id);
     });
 
-  return { parcels, add, toggle, remove };
+  return { parcels, add, remove };
 }

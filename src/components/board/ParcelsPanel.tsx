@@ -1,13 +1,13 @@
 import { useState } from "react";
-import { Check, ExternalLink, Package, Plus, X } from "lucide-react";
+import { ExternalLink, Package, Plus, X } from "lucide-react";
 import type { Parcel, ParcelCarrier } from "./useParcels";
+import { Button } from "@/components/ui/button";
 
 type Props = {
   parcels: Parcel[];
   adding: boolean;
   onCloseAdd: () => void;
   onAdd: (carrier: ParcelCarrier, label: string, tracking: string) => void;
-  onToggle: (parcel: Parcel) => void;
   onRemove: (id: string) => void;
 };
 
@@ -93,7 +93,7 @@ function Steps({ parcel }: { parcel: Parcel }) {
   );
 }
 
-export function ParcelsPanel({ parcels, adding, onCloseAdd, onAdd, onToggle, onRemove }: Props) {
+export function ParcelsPanel({ parcels, adding, onCloseAdd, onAdd, onRemove }: Props) {
   const [carrier, setCarrier] = useState<ParcelCarrier>("dhl");
   const [label, setLabel] = useState("");
   const [tracking, setTracking] = useState("");
@@ -124,16 +124,17 @@ export function ParcelsPanel({ parcels, adding, onCloseAdd, onAdd, onToggle, onR
         >
           <div className="flex flex-wrap gap-2">
             {CARRIERS.map((c) => (
-              <button
+               <Button
                 key={c.id}
                 type="button"
+                 variant="ghost"
                 onClick={() => setCarrier(c.id)}
                 className={`rounded-full min-h-11 px-4 py-2 text-sm active:scale-95 ${
                   carrier === c.id ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"
                 }`}
               >
                 {c.name}
-              </button>
+               </Button>
             ))}
           </div>
           <div className="flex flex-col gap-2 sm:flex-row">
@@ -154,12 +155,12 @@ export function ParcelsPanel({ parcels, adding, onCloseAdd, onAdd, onToggle, onR
             />
           </div>
           <div className="flex justify-end gap-2">
-            <button type="button" onClick={onCloseAdd} className="rounded-2xl bg-secondary min-h-12 px-5 text-muted-foreground active:scale-95">
+             <Button type="button" variant="ghost" onClick={onCloseAdd} className="rounded-2xl bg-secondary min-h-12 px-5 text-muted-foreground active:scale-95">
               Cancel
-            </button>
-            <button type="submit" className="flex items-center gap-2 rounded-2xl bg-primary min-h-12 px-5 font-medium text-primary-foreground active:scale-95">
+             </Button>
+             <Button type="submit" className="flex items-center gap-2 rounded-2xl bg-primary min-h-12 px-5 font-medium text-primary-foreground active:scale-95 [&_svg]:size-5">
               <Plus className="h-5 w-5" /> Track parcel
-            </button>
+             </Button>
           </div>
         </form>
       )}
@@ -171,31 +172,28 @@ export function ParcelsPanel({ parcels, adding, onCloseAdd, onAdd, onToggle, onR
           const url = p.tracking_number ? c?.track?.(p.tracking_number) : undefined;
           const done = p.arrived || p.status === "delivered";
           return (
-            <li key={p.id} className="flex items-center gap-3 rounded-2xl bg-muted/60 pl-2">
-              <button onClick={() => onToggle(p)} aria-label={done ? "Mark not delivered" : "Mark delivered"} className="flex min-h-14 min-w-0 flex-1 items-center gap-4 py-2 text-left">
-                <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-full border-2 transition ${done ? "border-primary bg-primary text-primary-foreground" : "border-muted-foreground/50"}`}>
-                  {done && <Check className="h-5 w-5" />}
-                </span>
-                <span className={`min-w-0 flex-1 ${done ? "opacity-60" : ""}`}>
-                  <span className="flex items-center gap-2">
-                    <span className="shrink-0 rounded-md bg-primary/20 px-1.5 py-0.5 text-xs font-semibold text-primary">{c?.name ?? "Other"}</span>
-                    <span className="truncate text-base sm:text-lg">{p.label || p.tracking_number || "Package"}</span>
-                    {!done && estText(p.expected_date) && (
-                      <span className="shrink-0 text-sm text-muted-foreground">{estText(p.expected_date)}</span>
-                    )}
-                  </span>
-                  <span className={`mt-0.5 block text-sm ${s.cls}`}>{s.text}</span>
-                  <Steps parcel={p} />
-                </span>
-              </button>
-              {url && (
-                <a href={url} target="_blank" rel="noopener noreferrer" aria-label="Track on carrier site" className="grid h-14 w-14 shrink-0 place-items-center text-muted-foreground active:text-foreground">
-                  <ExternalLink className="h-5 w-5" />
-                </a>
-              )}
-              <button onClick={() => onRemove(p.id)} aria-label="Remove" className="grid h-14 w-14 shrink-0 place-items-center text-muted-foreground active:text-destructive">
-                <X className="h-5 w-5" />
-              </button>
+              <li key={p.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-1 rounded-2xl bg-muted/60 py-3 pl-4 pr-1 sm:gap-x-3 sm:pr-2">
+                 <div className={`min-w-0 ${done ? "opacity-60" : ""}`}>
+                   <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+                     <span className="shrink-0 rounded-md bg-primary/20 px-1.5 py-0.5 text-xs font-semibold text-primary">{c?.name ?? "Other"}</span>
+                     {!done && estText(p.expected_date) && (
+                       <span className="text-sm text-muted-foreground">{estText(p.expected_date)}</span>
+                     )}
+                   </div>
+                   <p className="mt-1 break-words text-base leading-snug sm:text-lg">{p.label || p.tracking_number || "Package"}</p>
+                   <p className={`mt-0.5 text-sm ${s.cls}`}>{s.text}</p>
+                   <Steps parcel={p} />
+                 </div>
+                 <div className="flex shrink-0 items-center">
+                   {url && (
+                     <a href={url} target="_blank" rel="noopener noreferrer" aria-label="Track on carrier site" className="grid h-11 w-11 shrink-0 place-items-center text-muted-foreground active:text-foreground sm:h-14 sm:w-14">
+                       <ExternalLink className="h-5 w-5" />
+                     </a>
+                   )}
+                   <Button type="button" variant="ghost" onClick={() => onRemove(p.id)} aria-label={`Remove ${p.label || p.tracking_number || "parcel"}`} title="Remove" className="grid h-11 w-11 shrink-0 place-items-center rounded-xl text-muted-foreground active:text-destructive sm:h-14 sm:w-14">
+                     <X className="h-5 w-5" />
+                   </Button>
+                 </div>
             </li>
           );
         })}
