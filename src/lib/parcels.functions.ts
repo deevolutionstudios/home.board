@@ -53,8 +53,8 @@ export const refreshParcels = createServerFn({ method: "POST" })
   const night = berlinHour() >= 22 || berlinHour() < 6.5;
   const token = process.env["TRACK17_API_KEY"];
   if (!token) return { ok: false, reason: "not_configured" as const };
-  const url = process.env["SUPABASE_URL"]!;
-  const key = process.env["SUPABASE_PUBLISHABLE_KEY"]!;
+  const url = (process.env["SUPABASE_URL"] ?? "https://nfktzfzpqcicnsrcgqjg.supabase.co") as string;
+  const key = (process.env["SUPABASE_PUBLISHABLE_KEY"] ?? "sb_publishable_t0gDwwFDcK3b8sokpbNiBw_oYRaJw8c") as string;
   const db = createClient<Database>(url, key, {
     auth: { persistSession: false, autoRefreshToken: false },
     global: {
