@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { CalendarDays, MapPin } from "lucide-react";
+import { CalendarDays, MapPin, Store } from "lucide-react";
 import { getUpcomingEvents, type CalEvent } from "@/lib/calendar.functions";
+import { useHolidays } from "./useHolidays";
 
 export const calendarKey = ["calendar"];
 
@@ -70,6 +71,7 @@ export function CalendarPanel() {
     refetchInterval: 5 * 60_000,
   });
 
+  const holidays = useHolidays();
   const today = new Date();
   const days = [0, 1, 2, 3].map((o) => {
     const d = new Date(today);
@@ -78,7 +80,6 @@ export function CalendarPanel() {
   });
   const byDay = (d: Date) => (data ?? []).filter((e) => eventDay(e) === dayKey(d));
   const todays = byDay(today);
-
   return (
     <section className="glass flex min-h-0 flex-col rounded-3xl p-6">
       <h2 className="mb-4 flex items-center gap-3 font-display text-2xl font-light tracking-wide">
@@ -95,12 +96,18 @@ export function CalendarPanel() {
           <div className="mt-5 grid grid-cols-3 gap-3 border-t border-border pt-5">
             {days.slice(1).map((d) => {
               const evs = byDay(d);
+              const hol = holidays[dayKey(d)];
               return (
-                <div key={dayKey(d)} className="min-w-0">
-                  <p className="mb-2 font-display text-lg font-light">
+                <div key={dayKey(d)} className={`min-w-0 ${hol ? "rounded-xl border border-destructive/50 bg-destructive/10 p-2" : ""}`}>
+                  <p className={`mb-2 font-display text-lg font-light ${hol ? "text-destructive" : ""}`}>
                     {d.toLocaleDateString("en-GB", { weekday: "long" })}
-                    <span className="ml-2 text-muted-foreground">{d.getDate()}</span>
+                    <span className={`ml-2 ${hol ? "" : "text-muted-foreground"}`}>{d.getDate()}</span>
                   </p>
+                  {hol && (
+                    <p className="mb-2 flex items-center gap-1.5 text-sm font-medium text-destructive">
+                      <Store className="h-4 w-4 shrink-0" /> Stores closed
+                    </p>
+                  )}
                   <ul className="space-y-1.5">
                     {evs.length === 0 && <li className="text-sm text-muted-foreground">Free</li>}
                     {evs.slice(0, 4).map((e) => (
