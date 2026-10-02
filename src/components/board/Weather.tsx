@@ -80,19 +80,21 @@ export function Weather() {
   const hours = remainingToday.slice(0, 8);
 
   return (
-    <section className="glass flex flex-col justify-between gap-4 rounded-3xl p-6">
-      <div className="flex items-center justify-between gap-4">
-        <div>
+    <section className="glass flex flex-col justify-between gap-3 rounded-3xl p-6">
+      <div className="flex items-stretch justify-between gap-4">
+        <div className="flex flex-col">
           <p className="text-sm uppercase tracking-[0.25em] text-muted-foreground">München</p>
           <p className="font-display text-7xl font-extralight leading-none">{Math.round(data.current.temperature_2m)}°</p>
-          <p className="mt-1 text-lg text-muted-foreground">
-            {label} · feels {Math.round(data.current.apparent_temperature)}°
-          </p>
           <p className="mt-1 text-base text-muted-foreground">
             Today {todayMax}° / {todayMin}°
           </p>
         </div>
-        <Icon className="h-24 w-24 shrink-0 text-accent" strokeWidth={1.2} />
+        <div className="flex flex-col items-end justify-between">
+          <Icon className="h-24 w-24 shrink-0 text-accent" strokeWidth={1.2} />
+          <p className="text-lg text-muted-foreground">
+            {label} · feels {Math.round(data.current.apparent_temperature)}°
+          </p>
+        </div>
       </div>
 
       {activeAlerts.map((a) => (
