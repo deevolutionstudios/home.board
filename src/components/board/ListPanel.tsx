@@ -10,15 +10,16 @@ type Props = {
   items: BoardItem[];
   onAdd: (list: BoardList, text: string) => void;
   onRemove: (id: string) => void;
+  maxVisible?: number;
 };
 
 export const MAX_VISIBLE_ITEMS = 8;
 
-export function ListPanel({ title, icon, list, items, onAdd, onRemove }: Props) {
+export function ListPanel({ title, icon, list, items, onAdd, onRemove, maxVisible = MAX_VISIBLE_ITEMS }: Props) {
   const [text, setText] = useState("");
   const [showAll, setShowAll] = useState(false);
-  const hiddenCount = Math.max(0, items.length - MAX_VISIBLE_ITEMS);
-  const visibleItems = showAll || hiddenCount === 0 ? items : items.slice(0, MAX_VISIBLE_ITEMS);
+  const hiddenCount = Math.max(0, items.length - maxVisible);
+  const visibleItems = showAll || hiddenCount === 0 ? items : items.slice(0, maxVisible);
 
   // Text steps down as the list grows so a long list stays tidy on the wall.
   const textClass =
