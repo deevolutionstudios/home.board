@@ -11,8 +11,8 @@ const Body = z.object({
 });
 
 function boardClient() {
-  const key = process.env["SUPABASE_PUBLISHABLE_KEY"]!;
-  return createClient<Database>(process.env["SUPABASE_URL"]!, key, {
+  const key = (process.env["SUPABASE_PUBLISHABLE_KEY"] ?? "sb_publishable_t0gDwwFDcK3b8sokpbNiBw_oYRaJw8c") as string;
+  return createClient<Database>((process.env["SUPABASE_URL"] ?? "https://nfktzfzpqcicnsrcgqjg.supabase.co") as string, key, {
     auth: { persistSession: false },
     global: {
       fetch: (input, init) => {
