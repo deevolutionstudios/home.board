@@ -36,21 +36,20 @@ export function WifiPanel() {
 
   return (
     <>
-      <section className="glass flex items-center gap-4 rounded-3xl p-4 sm:gap-5 sm:p-5">
+      <section className="glass flex min-h-14 flex-1 items-center justify-between gap-3 rounded-lg px-3 py-2 sm:min-h-16 sm:px-4">
+        <div className="min-w-0 order-1">
+          <p className="flex items-center gap-1.5 text-[0.65rem] uppercase tracking-[0.2em] text-muted-foreground">
+            <Wifi className="h-3 w-3" /> Wi-Fi
+          </p>
+          <p className="mt-0.5 truncate font-display text-lg font-light sm:text-2xl">{config.ssid}</p>
+        </div>
         <button
           type="button"
           onClick={() => setOpen(true)}
           aria-label="Show Wi-Fi code larger"
-          className="shrink-0 rounded-2xl bg-background/50 p-2 text-foreground transition active:scale-95 [&>svg]:h-16 [&>svg]:w-16 sm:[&>svg]:h-20 sm:[&>svg]:w-20"
+          className="order-2 shrink-0 rounded-lg bg-background/50 p-2 text-foreground transition active:scale-95 [&>svg]:h-18 [&>svg]:w-18 sm:[&>svg]:h-24 sm:[&>svg]:w-24"
           dangerouslySetInnerHTML={{ __html: svg }}
         />
-        <div className="min-w-0">
-          <p className="flex items-center gap-2 text-sm uppercase tracking-[0.2em] text-muted-foreground">
-            <Wifi className="h-4 w-4" /> Wi-Fi
-          </p>
-          <p className="mt-1 truncate font-display text-xl font-light sm:text-2xl">{config.ssid}</p>
-          <p className="mt-1 text-xs text-muted-foreground">Point your camera here to join</p>
-        </div>
       </section>
 
       {open && (
