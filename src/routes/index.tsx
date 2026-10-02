@@ -37,10 +37,11 @@ function Clock() {
     return () => clearInterval(t);
   }, []);
   if (!now) return <div className="h-24 lg:h-40" />;
+  const hour12 = now.getHours() % 12 || 12;
   return (
     <div>
       <p className="font-display text-7xl sm:text-8xl lg:text-[9rem] font-extralight leading-none tracking-tight tabular-nums">
-        {now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}
+        {hour12}:{String(now.getMinutes()).padStart(2, "0")}
         <span className="ml-2 text-3xl lg:ml-3 lg:text-5xl text-muted-foreground">{String(now.getSeconds()).padStart(2, "0")}</span>
       </p>
       <p className="mt-2 font-display text-xl sm:text-2xl lg:mt-3 lg:text-4xl font-light text-muted-foreground">
@@ -118,24 +119,27 @@ function Board() {
         className="relative mx-auto flex min-h-screen w-full max-w-[1080px] flex-col gap-4 p-4 pb-8 sm:gap-5 sm:p-6 lg:gap-6 lg:p-8 transition-[filter] duration-700"
         style={{ filter: night ? "brightness(0.12) saturate(0.5)" : undefined }}
       >
-        <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between sm:gap-6">
+        <header className="flex flex-col gap-4 sm:flex-row sm:items-stretch sm:justify-between sm:gap-6">
           <Clock />
-          <div className="flex gap-2 sm:gap-3" aria-label="Display controls">
-            <CtrlButton onClick={() => setAddingParcel(true)} label="Parcel">
-              <Package />
-            </CtrlButton>
-            <CtrlButton onClick={() => setPhotosOpen(true)} label="Photos">
-              <ImagePlus />
-            </CtrlButton>
-            <CtrlButton onClick={() => window.location.reload()} label="Refresh">
-              <RefreshCw />
-            </CtrlButton>
-            <CtrlButton onClick={toggleNight} label="Night" active={night}>
-              <Moon />
-            </CtrlButton>
-            <CtrlButton onClick={toggleFull} label={full ? "Exit" : "Full"}>
-              {full ? <Minimize /> : <Maximize />}
-            </CtrlButton>
+          <div className="flex flex-col items-stretch gap-2 sm:gap-3" aria-label="Display controls">
+            <WifiPanel />
+            <div className="flex gap-2 sm:gap-3">
+              <CtrlButton onClick={() => setAddingParcel(true)} label="Parcel">
+                <Package />
+              </CtrlButton>
+              <CtrlButton onClick={() => setPhotosOpen(true)} label="Photos">
+                <ImagePlus />
+              </CtrlButton>
+              <CtrlButton onClick={() => window.location.reload()} label="Refresh">
+                <RefreshCw />
+              </CtrlButton>
+              <CtrlButton onClick={toggleNight} label="Night" active={night}>
+                <Moon />
+              </CtrlButton>
+              <CtrlButton onClick={toggleFull} label={full ? "Exit" : "Full"}>
+                {full ? <Minimize /> : <Maximize />}
+              </CtrlButton>
+            </div>
           </div>
         </header>
         <Weather />
@@ -151,10 +155,8 @@ function Board() {
           <ListPanel title="Groceries" icon={<ShoppingBasket className="h-6 w-6" />} list="grocery" items={groceries}
              onAdd={board.add} onRemove={board.remove} />
         </div>
-
-
-        <WifiPanel />
       </div>
+
 
       {photosOpen && (
         <PhotosPanel photos={photoSet.photos} onAdd={photoSet.add} onRemove={photoSet.remove} onClose={() => setPhotosOpen(false)} />
