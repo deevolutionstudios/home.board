@@ -23,7 +23,7 @@ export function ListPanel({ title, icon, list, items, onAdd, onRemove, maxVisibl
 
   // Text steps down as the list grows so a long list stays tidy on the wall.
   const textClass =
-    items.length > 14 ? "text-xs sm:text-sm" : items.length > 8 ? "text-sm sm:text-base" : "text-base sm:text-lg";
+    items.length > 14 ? "text-xs sm:text-sm" : items.length > 8 ? "text-sm sm:text-[15px]" : "text-base";
 
   return (
     <section className="glass flex min-h-0 flex-col rounded-3xl p-4 sm:p-6">
