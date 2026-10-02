@@ -69,7 +69,7 @@ function Steps({ parcel }: { parcel: Parcel }) {
   const idx = stepIndex(parcel);
   const problem = parcel.status === "problem";
   return (
-    <span className="mt-2 mb-1 flex items-start pr-2" aria-label={`Progress: ${idx + 1} of 5`}>
+    <span className="flex items-start pr-2" aria-label={`Progress: ${idx + 1} of 5`}>
       {STEPS.map((name, i) => {
         const reached = i <= idx;
         const current = i === idx;
@@ -202,9 +202,11 @@ export function ParcelsPanel({ parcels, adding, onCloseAdd, onAdd, onRemove, onC
                        <span className="text-sm text-muted-foreground">{estText(p.expected_date)}</span>
                      )}
                    </div>
-                   <p className="mt-1 break-words text-base leading-snug sm:text-lg">{p.label || p.tracking_number || "Package"}</p>
-                   <p className={`mt-0.5 text-sm ${s.cls}`}>{s.text}</p>
-                   <Steps parcel={p} />
+                    <div className="mt-1 flex min-w-0 flex-wrap items-baseline gap-x-6 gap-y-1">
+                      <p className="min-w-0 break-words text-base leading-snug sm:text-lg">{p.label || p.tracking_number || "Package"}</p>
+                      <p className={`shrink-0 text-sm ${s.cls}`}>{s.text}</p>
+                    </div>
+                    <div className="mt-1.5"><Steps parcel={p} /></div>
                  </div>
                  <div className="flex shrink-0 items-center">
                    {url && (
