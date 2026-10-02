@@ -93,12 +93,12 @@ export function CalendarPanel() {
             {todays.length === 0 && <li className="py-6 text-center text-lg text-muted-foreground">Nothing scheduled today</li>}
             {todays.map((e) => <TodayEvent key={e.id} e={e} />)}
           </ul>
-          <div className="mt-5 grid grid-cols-3 gap-3 border-t border-border pt-5">
+          <div className="mt-5 grid grid-cols-1 gap-3 border-t border-border pt-5 sm:grid-cols-3 sm:gap-3">
             {days.slice(1).map((d) => {
               const evs = byDay(d);
               const hol = holidays[dayKey(d)];
               return (
-                <div key={dayKey(d)} className={`min-w-0 ${hol ? "rounded-xl border border-destructive/50 bg-destructive/10 p-2" : ""}`}>
+                <div key={dayKey(d)} className={`min-w-0 rounded-xl p-3 ${hol ? "border border-destructive/50 bg-destructive/10" : ""}`}>
                   <p className={`mb-2 font-display text-lg font-light ${hol ? "text-destructive" : ""}`}>
                     {d.toLocaleDateString("en-GB", { weekday: "long" })}
                     <span className={`ml-2 ${hol ? "" : "text-muted-foreground"}`}>{d.getDate()}</span>
