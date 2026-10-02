@@ -9,6 +9,7 @@
 - noindex meta added to / so the board stays unlisted
 - Night wake layer stays transparent instead of showing the accent color
 - Removed manual completion circles from parcels and lists; X now removes rows directly while parcel progress remains automatic
+- Added a "Check now" button to the parcels panel that forces an immediate status check (bypasses the 2-hour window and night pause)
 - Restored Refresh and Night controls; display night mode is manual and persists per device, with no automatic schedule
 - Parcel rows wrap full labels and keep the carrier and expected date visible on mobile
 

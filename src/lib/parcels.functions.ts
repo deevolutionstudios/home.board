@@ -44,7 +44,9 @@ function berlinHour() {
   return h + m / 60;
 }
 
-export const refreshParcels = createServerFn({ method: "POST" }).handler(async () => {
+export const refreshParcels = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) => (typeof input === "object" && input !== null ? input : {}) as { force?: boolean })
+  .handler(async ({ data }) => {
   // Night quiet hours (10pm–6:30am Berlin): pause scheduled status checks.
   // A parcel that has never been scanned still gets its first check, so adding
   // one at night still registers and scans it immediately.
@@ -73,9 +75,9 @@ export const refreshParcels = createServerFn({ method: "POST" }).handler(async (
   if (error) return { ok: false, reason: "db" as const };
 
   const now = Date.now();
-  const all = (rows ?? []).filter((r) => !r.checked_at || now - new Date(r.checked_at).getTime() > RECHECK_MS);
-  const due = (night ? all.filter((r) => !r.checked_at) : all).slice(0, 40);
-  if (due.length === 0) return { ok: true, updated: 0, skipped: night ? ("night" as const) : undefined };
+  const all = (rows ?? []).filter((r) => data.force || !r.checked_at || now - new Date(r.checked_at).getTime() > RECHECK_MS);
+  const due = (night && !data.force ? all.filter((r) => !r.checked_at) : all).slice(0, 40);
+  if (due.length === 0) return { ok: true, updated: 0, skipped: night && !data.force ? ("night" as const) : undefined };
 
   const call = async (path: string, body: unknown) => {
     const res = await fetch(`${API}/${path}`, {
@@ -108,14 +110,27 @@ export const refreshParcels = createServerFn({ method: "POST" }).handler(async (
     for (const r of due) {
       const item = byNum.get(r.tracking_number);
       const ti = item?.track_info;
-      const status = mapStatus(ti?.latest_status?.status, ti?.latest_status?.sub_status);
+      let status = mapStatus(ti?.latest_status?.status, ti?.latest_status?.sub_status);
       const eta = ti?.time_metrics?.estimated_delivery_date?.from;
+      // 17TRACK often keeps DHL parcels at "InTransit" even once they're at the local
+      // delivery base / on the van, so read the latest scan text as well.
+      if (status === "in_transit") {
+        const desc = ti?.latest_event?.description ?? "";
+        const today = berlinDate(new Date().toISOString());
+        const dueToday = !!eta && berlinDate(eta) === today;
+        const scannedToday = !!ti?.latest_event?.time_iso && berlinDate(ti.latest_event.time_iso) === today;
+        if (
+          /out for delivery|delivery vehicle|loaded onto|in zustellung|zustellfahrzeug|processed in the delivery base|zustellbasis bearbeitet/i.test(desc) ||
+          ((dueToday || scannedToday) && /delivery base|zustellbasis|destination country|zielland|region of (the )?recipient|sorting center/i.test(desc))
+        ) status = "out_for_delivery";
+      }
       const update: Database["public"]["Tables"]["board_parcels"]["Update"] = {
         status,
         status_detail: (ti?.latest_event?.description ?? "").slice(0, 200),
         checked_at: new Date().toISOString(),
       };
       if (eta) update.expected_date = berlinDate(eta);
+      else if (status === "out_for_delivery") update.expected_date = berlinDate(new Date().toISOString());
       if (status === "delivered") {
         update.arrived = true;
         update.delivered_at = ti?.latest_event?.time_iso ?? new Date().toISOString();

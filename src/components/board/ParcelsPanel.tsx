@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ExternalLink, Package, Plus, X } from "lucide-react";
+import { ExternalLink, Package, Plus, RefreshCw, X } from "lucide-react";
 import type { Parcel, ParcelCarrier } from "./useParcels";
 import { Button } from "@/components/ui/button";
 
@@ -9,6 +9,7 @@ type Props = {
   onCloseAdd: () => void;
   onAdd: (carrier: ParcelCarrier, label: string, tracking: string) => void;
   onRemove: (id: string) => void;
+  onCheck: () => void;
 };
 
 const CARRIERS: { id: ParcelCarrier; name: string; track?: (n: string) => string }[] = [
@@ -93,12 +94,22 @@ function Steps({ parcel }: { parcel: Parcel }) {
   );
 }
 
-export function ParcelsPanel({ parcels, adding, onCloseAdd, onAdd, onRemove }: Props) {
+export function ParcelsPanel({ parcels, adding, onCloseAdd, onAdd, onRemove, onCheck }: Props) {
   const [carrier, setCarrier] = useState<ParcelCarrier>("dhl");
   const [label, setLabel] = useState("");
   const [tracking, setTracking] = useState("");
+  const [checking, setChecking] = useState(false);
 
   if (!adding && parcels.length === 0) return null;
+
+  const checkNow = async () => {
+    setChecking(true);
+    try {
+      await onCheck();
+    } finally {
+      setChecking(false);
+    }
+  };
 
   const submit = () => {
     if (!tracking.trim() && !label.trim()) return;
@@ -115,6 +126,17 @@ export function ParcelsPanel({ parcels, adding, onCloseAdd, onAdd, onRemove }: P
           <span className="text-primary"><Package className="h-6 w-6" /></span>
           Parcels
         </h2>
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={checkNow}
+          disabled={checking}
+          aria-label="Check parcel status now"
+          className="flex items-center gap-2 rounded-full bg-secondary min-h-11 px-4 text-sm text-muted-foreground active:scale-95 [&_svg]:size-4"
+        >
+          <RefreshCw className={checking ? "animate-spin" : ""} />
+          {checking ? "Checking…" : "Check now"}
+        </Button>
       </header>
 
       {adding && (

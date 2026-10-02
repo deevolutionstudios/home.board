@@ -46,6 +46,16 @@ export function useParcels() {
     await load();
   }, [load]);
 
+  // Manual "Check now" — bypasses the 2-hour recheck window and night pause.
+  const checkNow = useCallback(async () => {
+    try {
+      await refreshParcels({ data: { force: true } });
+    } catch {
+      /* status stays as last known */
+    }
+    await load();
+  }, [load]);
+
   useEffect(() => {
     void refresh();
     const channel = supabase
@@ -80,5 +90,5 @@ export function useParcels() {
       await supabase.from("board_parcels").delete().eq("id", id);
     });
 
-  return { parcels, add, remove };
+  return { parcels, add, remove, refresh: checkNow };
 }

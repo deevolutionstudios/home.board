@@ -144,7 +144,7 @@ function Board() {
         <TransitPanel />
         <div aria-hidden className="min-h-6 flex-1" />
         <ParcelsPanel parcels={parcelBox.parcels} adding={addingParcel} onCloseAdd={() => setAddingParcel(false)}
-           onAdd={parcelBox.add} onRemove={parcelBox.remove} />
+           onAdd={parcelBox.add} onRemove={parcelBox.remove} onCheck={parcelBox.refresh} />
         <div className="grid min-h-0 gap-4 sm:gap-5 md:grid-cols-2 lg:gap-6 [&>section]:max-h-[65vh]">
           <ListPanel title="To-do" icon={<ListTodo className="h-6 w-6" />} list="todo" items={todos}
              onAdd={board.add} onRemove={board.remove} />
