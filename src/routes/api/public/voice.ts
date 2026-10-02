@@ -68,10 +68,13 @@ export const Route = createFileRoute("/api/public/voice")({
         }
 
         if (body.action === "remove") {
-          const needle = (body.text ?? "").trim().toLowerCase();
-          if (!needle) return Response.json({ error: "Nothing to remove" }, { status: 400 });
+          const needles = splitItems(body.text ?? "").map((t) => t.toLowerCase());
+          if (needles.length === 0) return Response.json({ error: "Nothing to remove" }, { status: 400 });
           const { data } = await supabase.from("board_items").select("id, text").eq("list", body.list);
-          const matches = (data ?? []).filter((i) => i.text.toLowerCase().includes(needle));
+          const matches = (data ?? []).filter((i) => {
+            const lower = i.text.toLowerCase();
+            return needles.some((n) => lower.includes(n));
+          });
           if (matches.length === 0) return Response.json({ ok: true, removed: [], message: `Nothing matching "${body.text}" on the list` });
           const { error } = await supabase.from("board_items").delete().in("id", matches.map((m) => m.id));
           if (error) return Response.json({ error: error.message }, { status: 500 });
