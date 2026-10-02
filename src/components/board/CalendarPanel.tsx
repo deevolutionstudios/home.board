@@ -90,7 +90,7 @@ export function CalendarPanel() {
       {data && (
         <>
           <ul className="min-h-0 flex-1 space-y-2 overflow-y-auto">
-            {todays.length === 0 && <li className="py-6 text-center text-lg text-muted-foreground">Nothing scheduled today</li>}
+            {todays.length === 0 && <li className="py-2 text-center text-base text-muted-foreground">Nothing scheduled today</li>}
             {todays.map((e) => <TodayEvent key={e.id} e={e} />)}
           </ul>
           <div className="mt-5 grid grid-cols-1 gap-3 border-t border-border pt-5 sm:grid-cols-3 sm:gap-3">
