@@ -32,7 +32,8 @@ export function useFitToScreen() {
     const overflow = doc.scrollHeight - window.innerHeight;
     if (overflow > 4 && budget > FIT_MIN_ITEMS) {
       setBudget((b) => Math.max(FIT_MIN_ITEMS, b - 1));
-    } else if (overflow < -260 && budget < FIT_MAX_ITEMS) {
+    } else if (overflow < -70 && budget < FIT_MAX_ITEMS) {
+      // One spare row (~64px) is enough to grow back — fills the lists as soon as space returns.
       setBudget((b) => Math.min(FIT_MAX_ITEMS, b + 1));
     }
   }, [budget, tick]);
