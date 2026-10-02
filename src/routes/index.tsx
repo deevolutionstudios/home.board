@@ -11,6 +11,7 @@ import { ParcelsPanel } from "@/components/board/ParcelsPanel";
 import { useBoardItems } from "@/components/board/useBoardItems";
 import { useParcels } from "@/components/board/useParcels";
 import { usePhotos } from "@/components/board/usePhotos";
+import { useFitToScreen } from "@/components/board/useFitToScreen";
 import { PhotosPanel } from "@/components/board/PhotosPanel";
 import { Button } from "@/components/ui/button";
 
@@ -104,6 +105,7 @@ function Board() {
 
   const todos = board.items.filter((i) => i.list === "todo");
   const groceries = board.items.filter((i) => i.list === "grocery");
+  const listBudget = useFitToScreen();
 
   return (
     <main className="relative min-h-screen overflow-x-hidden bg-background text-foreground">
@@ -146,14 +148,14 @@ function Board() {
 
         <div className="min-h-0"><CalendarPanel /></div>
         <TransitPanel />
-        <div aria-hidden className="min-h-6 flex-1" />
+        <div aria-hidden className="-mt-4 min-h-0 flex-1 sm:-mt-5 lg:-mt-6" />
         <ParcelsPanel parcels={parcelBox.parcels} adding={addingParcel} onCloseAdd={() => setAddingParcel(false)}
            onAdd={parcelBox.add} onRemove={parcelBox.remove} onCheck={parcelBox.refresh} />
         <div className="grid min-h-0 gap-4 sm:gap-5 md:grid-cols-2 lg:gap-6 [&>section]:max-h-[65vh]">
           <ListPanel title="To-do" icon={<ListTodo className="h-6 w-6" />} list="todo" items={todos}
-             onAdd={board.add} onRemove={board.remove} />
+             onAdd={board.add} onRemove={board.remove} maxVisible={listBudget} />
           <ListPanel title="Groceries" icon={<ShoppingBasket className="h-6 w-6" />} list="grocery" items={groceries}
-             onAdd={board.add} onRemove={board.remove} />
+             onAdd={board.add} onRemove={board.remove} maxVisible={listBudget} />
         </div>
       </div>
 
