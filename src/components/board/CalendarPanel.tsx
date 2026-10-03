@@ -80,10 +80,16 @@ export function CalendarPanel() {
   });
   const byDay = (d: Date) => (data ?? []).filter((e) => eventDay(e) === dayKey(d));
   const todays = byDay(today);
+  const todayHoliday = holidays[dayKey(today)];
   return (
     <section className="glass flex min-h-0 flex-col rounded-3xl p-6">
-      <h2 className="mb-4 flex items-center gap-3 font-display text-2xl font-light tracking-wide">
+      <h2 className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-1 font-display text-2xl font-light tracking-wide">
         <CalendarDays className="h-6 w-6 text-primary" /> Today
+        {todayHoliday && (
+          <span className="ml-auto inline-flex items-center gap-1.5 text-sm font-medium text-destructive" title={todayHoliday}>
+            <Store className="h-4 w-4 shrink-0" aria-hidden /> Stores closed
+          </span>
+        )}
       </h2>
       {isError && <p className="text-destructive">Calendar couldn't load: {(error as Error).message}</p>}
       {!data && !isError && <p className="text-muted-foreground">Loading calendar…</p>}
