@@ -88,6 +88,9 @@
     user-select: none;
   }
   input { user-select: text; }
+  /* Hide the mouse pointer on the wall display after 3s idle */
+  body.cursor-hidden,
+  body.cursor-hidden * { cursor: none !important; }
 }
 
 @keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
