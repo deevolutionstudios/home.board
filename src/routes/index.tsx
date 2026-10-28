@@ -93,6 +93,23 @@ function Board() {
   const background = photoSet.current?.url ?? boardBackground;
 
   useEffect(() => {
+    let timer: number | undefined;
+    const wake = () => {
+      document.body.classList.remove("cursor-hidden");
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => document.body.classList.add("cursor-hidden"), 3000);
+    };
+    wake();
+    window.addEventListener("mousemove", wake);
+    window.addEventListener("mousedown", wake);
+    return () => {
+      window.removeEventListener("mousemove", wake);
+      window.removeEventListener("mousedown", wake);
+      window.clearTimeout(timer);
+    };
+  }, []);
+
+  useEffect(() => {
     const h = () => setFull(!!document.fullscreenElement);
     document.addEventListener("fullscreenchange", h);
     return () => document.removeEventListener("fullscreenchange", h);
