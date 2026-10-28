@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { time12 } from "@/lib/clock";
 
 export type Departure = {
   line: string;
@@ -57,7 +58,7 @@ async function fetchStop(globalId: string, lines: string[], types: string, eastb
         line: d.label,
         destination: d.destination,
         minutes: Math.max(0, Math.round((t - now) / 60_000)),
-        time: new Date(t).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Berlin" }),
+        time: time12(new Date(t), "Europe/Berlin"),
         delay: d.delayInMinutes ?? 0,
         cancelled: d.cancelled,
         ...(typeof d.platform === "number" ? { platform: d.platform } : {}),
