@@ -12,6 +12,7 @@ import { useBoardItems } from "@/components/board/useBoardItems";
 import { useParcels } from "@/components/board/useParcels";
 import { usePhotos } from "@/components/board/usePhotos";
 import { useFitToScreen } from "@/components/board/useFitToScreen";
+import { autoNight } from "@/lib/clock";
 import { PhotosPanel } from "@/components/board/PhotosPanel";
 import { Button } from "@/components/ui/button";
 
@@ -76,15 +77,36 @@ function Board() {
   const parcelBox = useParcels();
   const [addingParcel, setAddingParcel] = useState(false);
   const [night, setNight] = useState(false);
+  // Auto-dim: dark 23:00–06:30 Berlin, manual Night/wake overrides until the next boundary.
   useEffect(() => {
-    setNight(window.localStorage.getItem("board-night-mode") === "on");
+    const tick = () => {
+      const d = autoNight(
+        new Date(),
+        window.localStorage.getItem("board-night-window"),
+        window.localStorage.getItem("board-night-manual"),
+      );
+      if (d.windowChanged) {
+        window.localStorage.setItem("board-night-window", d.id);
+        window.localStorage.removeItem("board-night-manual");
+      }
+      if (d.night !== null) {
+        setNight(d.night);
+        window.localStorage.setItem("board-night-mode", d.night ? "on" : "off");
+      }
+    };
+    tick();
+    const t = setInterval(tick, 30_000);
+    return () => clearInterval(t);
   }, []);
   const toggleNight = () => setNight((current) => {
-    window.localStorage.setItem("board-night-mode", current ? "off" : "on");
-    return !current;
+    const next = !current;
+    window.localStorage.setItem("board-night-mode", next ? "on" : "off");
+    window.localStorage.setItem("board-night-manual", next ? "on" : "off");
+    return next;
   });
   const wake = () => {
     window.localStorage.setItem("board-night-mode", "off");
+    window.localStorage.setItem("board-night-manual", "off");
     setNight(false);
   };
   const [full, setFull] = useState(false);
