@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { CalendarDays, MapPin, Store } from "lucide-react";
 import { getUpcomingEvents, type CalEvent } from "@/lib/calendar.functions";
+import { time12 } from "@/lib/clock";
 import { useHolidays } from "./useHolidays";
 
 export const calendarKey = ["calendar"];
@@ -13,7 +14,7 @@ function dayKey(d: Date) {
 function eventDay(e: CalEvent) {
   return e.allDay ? e.start.slice(0, 10) : dayKey(new Date(e.start));
 }
-const time = (s: string) => new Date(s).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+const time = (s: string) => time12(new Date(s));
 
 const timeRange = (e: CalEvent) => (e.allDay ? "All day" : `${time(e.start)} – ${time(e.end)}`);
 
