@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Cloud, CloudDrizzle, CloudFog, CloudLightning, CloudRain, CloudSnow, CloudSun, Sun, Wind, Droplets, Umbrella, Snowflake, Sunrise, Sunset, TriangleAlert } from "lucide-react";
+import { isoTime12 } from "@/lib/clock";
 
 const URL =
   "https://api.open-meteo.com/v1/forecast?latitude=48.137&longitude=11.575&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m&hourly=temperature_2m,weather_code,precipitation_probability,snowfall&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset&timezone=Europe%2FBerlin&forecast_days=4";
@@ -104,7 +105,7 @@ export function Weather() {
             <span className="font-semibold">{a.headline_en ?? a.event_en ?? "Weather warning"}</span>
             {a.expires && (
               <span className="text-muted-foreground">
-                {" "}· until {new Date(a.expires).toLocaleString("en-GB", { weekday: "short", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Berlin" })}
+                {" "}· until {new Date(a.expires).toLocaleString("en-US", { weekday: "short", hour: "numeric", minute: "2-digit", hour12: true, timeZone: "Europe/Berlin" }).replace(/\s?[AP]M/i, "").replace(",", "")}
               </span>
             )}
           </span>
@@ -123,8 +124,8 @@ export function Weather() {
       <div className="flex flex-wrap gap-x-5 gap-y-1 text-muted-foreground">
         <span className="flex items-center gap-1.5"><Wind className="h-4 w-4" />{Math.round(data.current.wind_speed_10m)} km/h</span>
         <span className="flex items-center gap-1.5"><Droplets className="h-4 w-4" />{data.current.relative_humidity_2m}%</span>
-        {data.daily.sunrise?.[0] && <span className="flex items-center gap-1.5"><Sunrise className="h-4 w-4" />{data.daily.sunrise?.[0].slice(11, 16)}</span>}
-        {data.daily.sunset?.[0] && <span className="flex items-center gap-1.5"><Sunset className="h-4 w-4" />{data.daily.sunset?.[0].slice(11, 16)}</span>}
+        {data.daily.sunrise?.[0] && <span className="flex items-center gap-1.5"><Sunrise className="h-4 w-4" />{isoTime12(data.daily.sunrise[0])}</span>}
+        {data.daily.sunset?.[0] && <span className="flex items-center gap-1.5"><Sunset className="h-4 w-4" />{isoTime12(data.daily.sunset[0])}</span>}
       </div>
 
       {hours.length > 0 && (
@@ -137,7 +138,7 @@ export function Weather() {
             return (
               <div key={t} className="flex min-w-[52px] flex-1 flex-col items-center rounded-xl bg-muted/40 py-2">
                 <span className="text-xs text-muted-foreground">
-                  {new Date(t).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}
+                  {isoTime12(t)}
                 </span>
                 <HI className="my-1 h-5 w-5" strokeWidth={1.5} />
                 <span className="text-sm">{Math.round(data.hourly.temperature_2m[i] ?? 0)}°</span>
