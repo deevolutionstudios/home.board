@@ -21,7 +21,11 @@ export function useHolidays() {
       const map: Record<string, string> = {};
       for (const h of all) {
         if (!h.types.includes("Public")) continue;
-        if (h.global || h.counties?.includes(REGION)) map[h.date] = h.name;
+        if (!h.global && !h.counties?.includes(REGION)) continue;
+        // Sundays are always closed anyway — don't mark them red for a
+        // holiday that happens to land on one (e.g. Allerheiligen).
+        if (new Date(`${h.date}T12:00:00`).getDay() === 0) continue;
+        map[h.date] = h.name;
       }
       return map;
     },
