@@ -26,8 +26,10 @@ function mapStatus(s?: string, sub?: string): string {
     case "AvailableForPickup": return "pickup";
     case "OutForDelivery": return "out_for_delivery";
     case "Delivered": return "delivered";
-    case "DeliveryFailure":
     case "Exception":
+      // DHL Express flags customs holds / delays as exceptions even while the parcel keeps moving.
+      return /Returning|Returned|Damage|Rejected|Lost|Destroyed|Cancel|NoBody/.test(sub ?? "") ? "problem" : "in_transit";
+    case "DeliveryFailure":
     case "Expired": return "problem";
     default: return "pending";
   }
@@ -132,10 +134,9 @@ export const refreshParcels = createServerFn({ method: "POST" })
         const desc = ti?.latest_event?.description ?? "";
         const today = berlinDate(new Date().toISOString());
         const dueToday = !!eta && berlinDate(eta) === today;
-        const scannedToday = !!ti?.latest_event?.time_iso && berlinDate(ti.latest_event.time_iso) === today;
         if (
           /out for delivery|delivery vehicle|loaded onto|in zustellung|zustellfahrzeug|processed in the delivery base|zustellbasis bearbeitet/i.test(desc) ||
-          ((dueToday || scannedToday) && /delivery base|zustellbasis|destination country|zielland|region of (the )?recipient|sorting center/i.test(desc))
+          (dueToday && /delivery base|zustellbasis|destination country|zielland|region of (the )?recipient|sorting center/i.test(desc))
         ) status = "out_for_delivery";
       }
       const update: Database["public"]["Tables"]["board_parcels"]["Update"] = {
