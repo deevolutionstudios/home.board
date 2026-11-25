@@ -69,7 +69,7 @@ export const refreshParcels = createServerFn({ method: "POST" })
 
   const { data: rows, error } = await db
     .from("board_parcels")
-    .select("id, tracking_number, registered, checked_at, delivered_at")
+    .select("id, carrier, tracking_number, registered, checked_at, delivered_at")
     .is("delivered_at", null)
     .neq("tracking_number", "");
   if (error) return { ok: false, reason: "db" as const };
@@ -93,6 +93,15 @@ export const refreshParcels = createServerFn({ method: "POST" })
     const toRegister = due.filter((r) => !r.registered);
     if (toRegister.length) {
       const reg = await call("register", toRegister.map((r) => ({ number: r.tracking_number })));
+      // Short numbers (10-digit = DHL Express 100001, else DHL Paket 7041) often fail auto-detection — retry with the chosen carrier.
+      const HINT: Record<string, number> = { dhl: 7041 };
+      const undetected = (reg.data?.rejected ?? []).filter((x) => x.error?.code === -18019903)
+        .map((x) => toRegister.find((r) => r.tracking_number === x.number))
+        .filter((r): r is (typeof toRegister)[number] => !!r && !!HINT[r.carrier]);
+      if (undetected.length) {
+        const retry = await call("register", undetected.map((r) => ({ number: r.tracking_number, carrier: r.carrier === "dhl" && /^\d{10}$/.test(r.tracking_number) ? 100001 : HINT[r.carrier] })));
+        reg.data?.accepted?.push(...(retry.data?.accepted ?? []));
+      }
       const ok = new Set([
         ...(reg.data?.accepted ?? []).map((a) => a.number),
         // -18019901 = already registered on this account
@@ -110,6 +119,11 @@ export const refreshParcels = createServerFn({ method: "POST" })
     for (const r of due) {
       const item = byNum.get(r.tracking_number);
       const ti = item?.track_info;
+      // No data yet (just registered / not tracked) — keep last status, retry on next check.
+      if (!ti?.latest_status?.status) {
+        await db.from("board_parcels").update({ checked_at: r.registered ? new Date().toISOString() : null }).eq("id", r.id);
+        continue;
+      }
       let status = mapStatus(ti?.latest_status?.status, ti?.latest_status?.sub_status);
       const eta = ti?.time_metrics?.estimated_delivery_date?.from;
       // 17TRACK often keeps DHL parcels at "InTransit" even once they're at the local
